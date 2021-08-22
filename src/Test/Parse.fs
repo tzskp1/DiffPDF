@@ -29,7 +29,6 @@ let tests =
     testCase "array" <| fun _ ->
       testp (pobj ()) "[549 3.14 false (Ralph) /SomeName]" (PDFArray [| PDFNumber (decimal 549); PDFNumber (decimal 3.14); PDFBoolean false; PDFString "Ralph"; PDFName "SomeName" |])
       testp (pobj ()) "[ 549 3.14 false (Ralph) /SomeName ]" (PDFArray [| PDFNumber (decimal 549); PDFNumber (decimal 3.14); PDFBoolean false; PDFString "Ralph"; PDFName "SomeName" |])
-      testp (manyCharsTill anyChar (pchar '[' <|> pchar ']') .>>. manyCharsTill anyChar (pchar '[' <|> pchar ']')) "[ 549 3.14 false (Ralph) /SomeName ]" ("", "")
-    // testCase "dict" <| fun _ ->
-    //   testp (pobj ()) "<< /Type /Example /Subtype /DictionaryExample /Version 0.01 /IntegerItem 12 /StringItem ( a string ) /Subdictionary << /Item1 0.4 /Item2 true /LastItem ( not! ) /VeryLastItem ( OK ) >> >>" PDFNull
+    testCase "dict" <| fun _ ->
+      testp (pobj ()) "<< /Type /Example /Subtype /DictionaryExample /Version 0.01 /IntegerItem 12 /StringItem ( a string ) /Subdictionary << /Item1 0.4 /Item2 true /LastItem ( not! ) /VeryLastItem ( OK ) >> >>" PDFNull
   ]

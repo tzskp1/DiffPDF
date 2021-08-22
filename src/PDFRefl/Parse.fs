@@ -76,14 +76,48 @@ let pname = (spaces >>. pchar '/' >>. many (noneOf ([0; 9; 10; 12; 13; 32] |> Li
 let pnull = pstring "null" |>> fun _ -> PDFNull
 let pref = (tuple2 puint64 puint64 .>> pchar 'R') |>> PDFRef
 
+type iterTy =
+    | LParen of string
+    | RParen of string
+    | Str of string
+    | IterSeq of list<iterTy>
+
+let itp a b =
+    match a, b with
+    | IterSeq as_, IterSeq bs ->
+        List.concat [as_; bs] |> IterSeq
+    | _, IterSeq bs ->
+        a :: bs |> IterSeq
+    | IterSeq as_, b ->
+        List.append as_ [b] |> IterSeq
+    | _, _ ->
+        IterSeq [a; b]
+
 let rec iter popen pclose =
     let q = manyCharsTill anyChar (followedBy (attempt (spaces >>. (pclose <|> popen))))
-    let p = (popen .>> spaces) .>>. q |>> fun (a, b) -> a + b
-    attempt (p .>>. (spaces >>. pclose) |>> fun (a, b) -> a + b)
-    <|>> lazy (tuple3 p (many (attempt (pspcs .>>. (iter popen pclose .>>. q |>> fun (a, b) -> a + b) |>> fun (a, b) -> a + b)) |>> String.Concat) (spaces >>. pclose) |>> fun (a, b, c) -> String.Concat (a :: b :: c :: []))
+    let p = (popen .>> spaces) .>>. q |>> fun (a, b) -> itp (LParen a) (Str b)
+    attempt (p .>>. (spaces >>. pclose) |>> fun (a, b) -> itp a (RParen b))
+    <|>> lazy (tuple3 p (many (attempt (pspcs .>>. (iter popen pclose .>>. q |>> fun (a, b) -> itp a (Str b)) |>> fun (a, b) -> itp (Str a) b)) |>> IterSeq) (spaces >>. pclose) |>> fun (a, b, c) -> itp (itp a b) (RParen c))
+
+let rec iter_flatten a =
+    match a with
+    | Str sa | LParen sa | RParen sa -> sa
+    | IterSeq as_ ->
+        List.map iter_flatten as_
+        |> List.fold (fun a b -> a + b) ""
+
+let eliminate_parens a =
+    let rec iter = function
+    | [] -> []
+    | [RParen _] -> []
+    | x :: xs -> x :: iter xs
+    match a with
+    | IterSeq (LParen _ :: as_) ->
+        iter as_ |> IterSeq |> iter_flatten
+    | _ -> failwith "never: eliminate_parens"
 
 let myBetween popen pclose p stream =
-    let r = stream |> ((popen >>. spaces >>. manyCharsTill anyChar (attempt (spaces >>. pclose))) |>> run p)
+    let r = stream |> (iter popen pclose |>> fun s -> run p (eliminate_parens s))
     if r.Status = Ok then
         match r.Result with
         | Success (res, (), pos) ->
@@ -95,7 +129,7 @@ let myBetween popen pclose p stream =
 let rec pobj () =
     attempt pref <|> attempt pbool <|> attempt pnum <|> attempt pstr <|> attempt pname <|> attempt pnull <|>> lazy (attempt (parr ())) <|>> lazy (attempt (pstream ())) <|>> lazy (attempt (pdict ())) <|>> lazy (pind ())
 and parr () =
-    myBetween (pchar '[') (pchar ']') (sepBy (spaces >>. pobj ()) (pchar ' ') |>> fun x -> List.toArray x |> PDFArray)
+    myBetween (pstring "[") (pstring "]") (sepBy (spaces >>. pobj ()) (pchar ' ') |>> fun x -> List.toArray x |> PDFArray)
 and pdict () =
     myBetween (pstring "<<") (pstring ">>") (sepBy (tuple2 (spaces >>. pname) (spaces >>. (pobj ()))) (pchar ' ') |>> fun x -> PDFDict (dict x))
 and pind () =
