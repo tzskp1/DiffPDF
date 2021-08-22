@@ -1,0 +1,69 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{37C7BC46-183A-41FC-AF4E-50F1020FD857}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "App", "src\App\App.fsproj", "{32C84E21-A990-4E8C-89E9-33E17954796D}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PDFRefl", "src\PDFRefl\PDFRefl.fsproj", "{CACBCD20-6B3E-4C69-9A51-36D6670B219B}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Test", "src\Test\Test.fsproj", "{F3E0A47A-87F4-49F6-A0AF-8DB81A4CB072}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{32C84E21-A990-4E8C-89E9-33E17954796D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32C84E21-A990-4E8C-89E9-33E17954796D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32C84E21-A990-4E8C-89E9-33E17954796D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{32C84E21-A990-4E8C-89E9-33E17954796D}.Debug|x64.Build.0 = Debug|Any CPU
+		{32C84E21-A990-4E8C-89E9-33E17954796D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{32C84E21-A990-4E8C-89E9-33E17954796D}.Debug|x86.Build.0 = Debug|Any CPU
+		{32C84E21-A990-4E8C-89E9-33E17954796D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32C84E21-A990-4E8C-89E9-33E17954796D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32C84E21-A990-4E8C-89E9-33E17954796D}.Release|x64.ActiveCfg = Release|Any CPU
+		{32C84E21-A990-4E8C-89E9-33E17954796D}.Release|x64.Build.0 = Release|Any CPU
+		{32C84E21-A990-4E8C-89E9-33E17954796D}.Release|x86.ActiveCfg = Release|Any CPU
+		{32C84E21-A990-4E8C-89E9-33E17954796D}.Release|x86.Build.0 = Release|Any CPU
+		{CACBCD20-6B3E-4C69-9A51-36D6670B219B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CACBCD20-6B3E-4C69-9A51-36D6670B219B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CACBCD20-6B3E-4C69-9A51-36D6670B219B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CACBCD20-6B3E-4C69-9A51-36D6670B219B}.Debug|x64.Build.0 = Debug|Any CPU
+		{CACBCD20-6B3E-4C69-9A51-36D6670B219B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CACBCD20-6B3E-4C69-9A51-36D6670B219B}.Debug|x86.Build.0 = Debug|Any CPU
+		{CACBCD20-6B3E-4C69-9A51-36D6670B219B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CACBCD20-6B3E-4C69-9A51-36D6670B219B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CACBCD20-6B3E-4C69-9A51-36D6670B219B}.Release|x64.ActiveCfg = Release|Any CPU
+		{CACBCD20-6B3E-4C69-9A51-36D6670B219B}.Release|x64.Build.0 = Release|Any CPU
+		{CACBCD20-6B3E-4C69-9A51-36D6670B219B}.Release|x86.ActiveCfg = Release|Any CPU
+		{CACBCD20-6B3E-4C69-9A51-36D6670B219B}.Release|x86.Build.0 = Release|Any CPU
+		{F3E0A47A-87F4-49F6-A0AF-8DB81A4CB072}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3E0A47A-87F4-49F6-A0AF-8DB81A4CB072}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3E0A47A-87F4-49F6-A0AF-8DB81A4CB072}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F3E0A47A-87F4-49F6-A0AF-8DB81A4CB072}.Debug|x64.Build.0 = Debug|Any CPU
+		{F3E0A47A-87F4-49F6-A0AF-8DB81A4CB072}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F3E0A47A-87F4-49F6-A0AF-8DB81A4CB072}.Debug|x86.Build.0 = Debug|Any CPU
+		{F3E0A47A-87F4-49F6-A0AF-8DB81A4CB072}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3E0A47A-87F4-49F6-A0AF-8DB81A4CB072}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3E0A47A-87F4-49F6-A0AF-8DB81A4CB072}.Release|x64.ActiveCfg = Release|Any CPU
+		{F3E0A47A-87F4-49F6-A0AF-8DB81A4CB072}.Release|x64.Build.0 = Release|Any CPU
+		{F3E0A47A-87F4-49F6-A0AF-8DB81A4CB072}.Release|x86.ActiveCfg = Release|Any CPU
+		{F3E0A47A-87F4-49F6-A0AF-8DB81A4CB072}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{32C84E21-A990-4E8C-89E9-33E17954796D} = {37C7BC46-183A-41FC-AF4E-50F1020FD857}
+		{CACBCD20-6B3E-4C69-9A51-36D6670B219B} = {37C7BC46-183A-41FC-AF4E-50F1020FD857}
+		{F3E0A47A-87F4-49F6-A0AF-8DB81A4CB072} = {37C7BC46-183A-41FC-AF4E-50F1020FD857}
+	EndGlobalSection
+EndGlobal
