@@ -14,6 +14,20 @@ let (<|>>) (p1: Parser<'a,'u>) (p2: Lazy<Parser<'a,'u>>) : Parser<'a,'u> =
                 reply.Error <- mergeErrors reply.Error error
         reply
 
+let (.>>.>) (p: Parser<'a,'u>) (q: Lazy<Parser<'b,'u>>) =
+    fun stream ->
+        let reply1 = p stream
+        if reply1.Status = Ok then
+            let stateTag1 = stream.StateTag
+            let reply2 = q.Force () stream
+            let error = if stateTag1 <> stream.StateTag then reply2.Error
+                        else mergeErrors reply1.Error reply2.Error
+            let result = if reply2.Status = Ok then (reply1.Result, reply2.Result)
+                         else Unchecked.defaultof<_>
+            Reply(reply2.Status, result, error)
+        else
+            Reply(reply1.Status, reply1.Error)
+
 type PDFObject =
     | PDFBoolean of bool
     | PDFNumber of decimal
@@ -37,11 +51,15 @@ let ex_pfloat =
       |> String.Concat
       |> Double.Parse
 
+let pspcs =
+    many (choice ([0; 9; 10; 12; 13; 32] |> List.map (fun i -> char i |> pchar)))
+    |>> String.Concat
+
 let ascii = new Text.ASCIIEncoding()
 let ph (x : char) = Int32.Parse (x.ToString(), System.Globalization.NumberStyles.HexNumber)
 let c2s c = [| byte c |] |> ascii.GetString
 let pbool = (pstring "true" |>> fun _ -> PDFBoolean true) <|> (pstring "false" |>> fun _ -> PDFBoolean false)
-let pnum = (attempt pfloat <|> ex_pfloat) |>> fun x -> PDFNumber (decimal x)
+let pnum = spaces >>. (attempt pfloat <|> ex_pfloat) |>> fun x -> PDFNumber (decimal x)
 let poct = octal |>> fun x -> Int32.Parse (x.ToString ())
 let pcode3 = pipe3 poct poct poct (fun a b c -> c + b * 8 + a * 8 * 8 |> c2s)
 let pcode2 = pipe2 poct poct (fun a b -> b + a * 8 |> c2s)
@@ -53,18 +71,33 @@ let phexs = (pchar '<' >>. many1 phex .>> pchar '>') |>> String.Concat
 let escaped = pchar '\\' >>. (pcode <|> (pchar 'n' |>> fun _ -> "\n") <|> (pchar 'r' |>> fun _ -> "r") <|> (pchar 't' |>> fun _ -> "\t") <|> (pchar 'b' |>> fun _ -> "\b") <|> (pchar 'f' |>> fun _ -> "\f") <|> (pchar '\\' |>> fun _ -> "\\") <|> (pchar '(' |>> fun _ -> ")") <|> (pchar ')' |>> fun _ -> ")"))
 let en = (pchar '\\' >>. newline >>. spaces) |>> fun _ -> ""
 let pchars = many (attempt (pstring "()") <|> attempt escaped <|> attempt en <|> attempt phexs <|> (noneOf ['('; ')'] |>> fun c -> c.ToString ()))
-let pstr = (pchar '(' >>. pchars .>> pchar ')') |>> fun ss -> String.Concat ss |> PDFString // WIIIP
-let pname = (pchar '/' >>. many (noneOf ([0; 9; 10; 12; 13; 32] |> List.map (fun i -> char i)))) |>> fun x -> List.fold (fun s c -> s + c.ToString ()) "" x |> PDFName // WIIIP
+let pstr = (pchar '(' >>. spaces >>. pchars .>> spaces .>> pchar ')') |>> fun ss -> String.Concat ss |> PDFString // WIIIP
+let pname = (spaces >>. pchar '/' >>. many (noneOf ([0; 9; 10; 12; 13; 32] |> List.map (fun i -> char i)))) |>> fun x -> List.fold (fun s c -> s + c.ToString ()) "" x |> PDFName // WIIIP
 let pnull = pstring "null" |>> fun _ -> PDFNull
 let pref = (tuple2 puint64 puint64 .>> pchar 'R') |>> PDFRef
 
+let rec iter popen pclose =
+    let q = manyCharsTill anyChar (followedBy (attempt (spaces >>. (pclose <|> popen))))
+    let p = (popen .>> spaces) .>>. q |>> fun (a, b) -> a + b
+    attempt (p .>>. (spaces >>. pclose) |>> fun (a, b) -> a + b)
+    <|>> lazy (tuple3 p (many (attempt (pspcs .>>. (iter popen pclose .>>. q |>> fun (a, b) -> a + b) |>> fun (a, b) -> a + b)) |>> String.Concat) (spaces >>. pclose) |>> fun (a, b, c) -> String.Concat (a :: b :: c :: []))
+
+let myBetween popen pclose p stream =
+    let r = stream |> ((popen >>. spaces >>. manyCharsTill anyChar (attempt (spaces >>. pclose))) |>> run p)
+    if r.Status = Ok then
+        match r.Result with
+        | Success (res, (), pos) ->
+            Reply (r.Status, res, r.Error)
+        | Failure _ ->
+            Reply (Error, r.Error)
+    else Reply (r.Status, r.Error)
+
 let rec pobj () =
-    attempt pref <|> attempt pbool <|> attempt pnum <|> attempt pstr <|> attempt pname <|> attempt pnull <|> attempt (pstream ()) <|> attempt (parr ()) <|> attempt (pdict ()) <|> attempt (pind ())
+    attempt pref <|> attempt pbool <|> attempt pnum <|> attempt pstr <|> attempt pname <|> attempt pnull <|>> lazy (attempt (parr ())) <|>> lazy (attempt (pstream ())) <|>> lazy (attempt (pdict ())) <|>> lazy (pind ())
 and parr () =
-    pchar '[' >>. sepBy (pobj ()) spaces .>> pchar ']' |>> fun x -> List.toArray x |> PDFArray
+    myBetween (pchar '[') (pchar ']') (sepBy (spaces >>. pobj ()) (pchar ' ') |>> fun x -> List.toArray x |> PDFArray)
 and pdict () =
-    pstring "<<" >>. sepBy (tuple2 (spaces >>. pname) (spaces >>. (pobj ()))) spaces .>> pstring ">>"
-    |>> fun x -> PDFDict (dict x)
+    myBetween (pstring "<<") (pstring ">>") (sepBy (tuple2 (spaces >>. pname) (spaces >>. (pobj ()))) (pchar ' ') |>> fun x -> PDFDict (dict x))
 and pind () =
     tuple3 puint64 puint64 (pstring "obj" >>. pobj () .>> pstring "endobj") |>> PDFIndirect
 and pstream () = // WIIIP
