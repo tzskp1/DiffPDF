@@ -30,5 +30,18 @@ let tests =
       testp (pobj ()) "[549 3.14 false (Ralph) /SomeName]" (PDFArray [| PDFNumber (decimal 549); PDFNumber (decimal 3.14); PDFBoolean false; PDFString "Ralph"; PDFName "SomeName" |])
       testp (pobj ()) "[ 549 3.14 false (Ralph) /SomeName ]" (PDFArray [| PDFNumber (decimal 549); PDFNumber (decimal 3.14); PDFBoolean false; PDFString "Ralph"; PDFName "SomeName" |])
     testCase "dict" <| fun _ ->
-      testp (pobj ()) "<< /Type /Example /Subtype /DictionaryExample /Version 0.01 /IntegerItem 12 /StringItem ( a string ) /Subdictionary << /Item1 0.4 /Item2 true /LastItem ( not! ) /VeryLastItem ( OK ) >> >>" PDFNull
+      testp (pobj ()) "<< /Type /Example /Subtype /DictionaryExample /Version 0.01 /IntegerItem 12 /StringItem ( a string ) /Subdictionary << /Item1 0.4 /Item2 true /LastItem ( not! ) /VeryLastItem ( OK ) >> >>"
+            (PDFDict <| Map [PDFName "Type", PDFName "Example";
+                              PDFName "Subtype", PDFName "DictionaryExample";
+                              PDFName "Version", PDFNumber 0.01M;
+                              PDFName "IntegerItem", PDFNumber 12M;
+                              PDFName "StringItem", PDFString " a string ";
+                              PDFName "Subdictionary", PDFDict <| Map [PDFName "Item1", PDFNumber 0.4M; PDFName "Item2", PDFBoolean true; PDFName "LastItem", PDFString " not! "; PDFName "VeryLastItem", PDFString " OK "]])
+    testCase "indirect" <| fun _ ->
+      testp (pobj ()) "12 0 obj\n (Brillig) \nendobj" (PDFIndirect (12UL, 0UL, PDFString "Brillig"))
+    testCase "ref" <| fun _ ->
+      testp (pobj ()) "12 0 R" (PDFRef (12UL, 0UL))
+    testCase "stream" <| fun _ ->
+      testp (pobj ()) "7 0 obj\n << /Length 8 0 R >>\n stream\n BT\n /F1 12 Tf\n 72 712 Td\n ( A stream with an indirect length ) Tj\n ET\n endstream\n endobj"
+            (PDFIndirect (7UL, 0UL, PDFStream (Map [(PDFName "Length", PDFRef (8UL, 0UL))], 36L, 109L)))
   ]
